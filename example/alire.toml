@@ -1,0 +1,22 @@
+name = "example"
+description = "An example demonstrating the grammaticus library"
+version = "0.1.0-dev"
+
+authors = ["Daniel King"]
+maintainers = ["Daniel King <damaki.gh@gmail.com>"]
+maintainers-logins = ["damaki"]
+licenses = "Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["example"]
+
+[build-switches]
+"*".Ada_Version = "Ada2022"
+
+[[depends-on]]
+grammaticus = "*"
+gnatprove = "^16"
+
+[[pins]]
+grammaticus = { path = ".." }

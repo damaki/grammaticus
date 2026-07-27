@@ -1,0 +1,16 @@
+name = "grammaticus"
+description = "A library for expressing context-free grammars in SPARK"
+version = "0.1.0-dev"
+
+authors = ["Daniel King"]
+maintainers = ["Daniel King <damaki.gh@gmail.com>"]
+maintainers-logins = ["damaki"]
+licenses = "Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+[build-switches]
+"*".Ada_Version = "Ada2022"
+
+[[depends-on]]
+sparklib = ">=16"
