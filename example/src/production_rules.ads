@@ -76,7 +76,7 @@ package Production_Rules with SPARK_Mode, Always_Terminates is
       --
       --  The EBNF description is:
       --
-      --     identifier_list = identifier , { "," , identifier }
+      --     identifier_list = identifier , { "," , identifier } ;
 
       function Match_Identifier_List (M : Match_Type) return Match_Type
       is (if Unmatched_Length (M) = 0

@@ -36,7 +36,7 @@ is
       --  The production rule we are checking against is (repeated here for
       --  convenience, see package Production_Rules):
       --
-      --    identifier_list = identifier , { "," , identifier }
+      --    identifier_list = identifier , { "," , identifier } ;
 
       --  First, try to match against the first `identifier` symbol, which
       --  is the minimum required by the production rule.

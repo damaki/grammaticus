@@ -9,7 +9,7 @@ For example, the following [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%
 grammar that describes a comma-separated identifier list:
 
 ```
-identifier_list = identifier , { "," , identifier }
+identifier_list = identifier , { "," , identifier } ;
 ```
 
 can be formally specified in SPARK with the following recursive expression
