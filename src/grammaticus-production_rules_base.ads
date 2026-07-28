@@ -13,7 +13,8 @@ generic
    with package Terminal_Symbol_Vectors is new
      SPARK.Containers.Functional.Vectors
        (Index_Type   => Index_Type,
-        Element_Type => Terminal_Symbol);
+        Element_Type => Terminal_Symbol,
+        others       => <>);
 
 package Grammaticus.Production_Rules_Base with
     Ghost,
