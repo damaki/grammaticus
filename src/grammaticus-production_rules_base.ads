@@ -152,12 +152,9 @@ is
       return Match_Type
    is (if Length (Expected) > Unmatched_Length (M)
          or else
-           not Range_Shifted
-                 (Left   => Expected,
-                  Right  => M.Symbols,
-                  Fst    => Index_Type'First,
-                  Lst    => Last (Expected),
-                  Offset => M.Matched_Count)
+           (for some I in Expected =>
+              Get (Expected, I)
+              /= Get (M.Symbols, Next_Unmatched_Index (M) + (I - 1)))
        then No_Match
        else
          Match_Type'
