@@ -10,7 +10,9 @@ with Grammaticus.Production_Rules_Base;
 
 --  This package defines some example symbol types and production rules.
 
-package Production_Rules with SPARK_Mode, Always_Terminates is
+package Production_Rules
+  with SPARK_Mode, Always_Terminates
+is
 
    --  Terminal_Symbol defines the set of terminal symbols that can appear in
    --  our grammar.
@@ -76,20 +78,39 @@ package Production_Rules with SPARK_Mode, Always_Terminates is
       --
       --  The EBNF description is:
       --
-      --     identifier_list = identifier , { "," , identifier } ;
+      --  identifier_list_tail = { "," , identifier } ;
+      --  identifier_list      = identifier , identifier_list_tail ;
+      --
+      --  Splitting the rule into two parts makes it easier to express the
+      --  repetition part using a recursive function.
+
+      function Match_Identifier_List_Tail (M : Match_Type) return Match_Type
+      is (declare
+            Next_M : constant Match_Type :=
+              Match_Terminal_Sequence (M, [Tok_Comma, Tok_Identifier]);
+          begin
+            (if not Next_M.Matched
+             then M
+             else Match_Identifier_List_Tail (Next_M)))
+      with
+        Post               =>
+          --  The rule matches against zero or more symbols
+          Is_Match_Monotonic (M, Match_Identifier_List_Tail'Result)
+          and then M.Matched = Match_Identifier_List_Tail'Result.Matched
+
+          --  The rule is greedy. All symbols that match the rule are consumed,
+          --  so the next unmatched symbols after this rule are not a comma
+          --  and identifier.
+          and then
+            not Match_Terminal_Sequence
+                  (Match_Identifier_List_Tail'Result,
+                   [Tok_Comma, Tok_Identifier])
+                  .Matched,
+        Subprogram_Variant => (Decreases => Unmatched_Length (M));
 
       function Match_Identifier_List (M : Match_Type) return Match_Type
-      is (if Unmatched_Length (M) = 0
-          then No_Match
-          else
-            Match_Identifier_List
-              (Match_Terminal_Sequence (M, [Tok_Identifier, Tok_Comma]))
-            or Match_Terminal (M, Tok_Identifier))
-      with
-        Ghost,
-        Post               =>
-          Is_Match_Progression (M, Match_Identifier_List'Result),
-        Subprogram_Variant => (Decreases => Unmatched_Length (M));
+      is (Match_Identifier_List_Tail (Match_Terminal (M, Tok_Identifier)))
+      with Post => Is_Match_Progression (M, Match_Identifier_List'Result);
 
    end Rules;
 

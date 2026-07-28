@@ -9,20 +9,38 @@ For example, the following [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%
 grammar that describes a comma-separated identifier list:
 
 ```
-identifier_list = identifier , { "," , identifier } ;
+identifer_list_tail = { "," , identifier } ;
+identifier_list     = identifier , identifier_list_tail ;
 ```
 
 can be formally specified in SPARK with the following recursive expression
-function:
+functions:
 ```ada
+
+--  Rule function for identifier_list_tail:
+function Match_Identifier_List_Tail (M : Match_Type) return Match_Type
+is (declare
+      Next_M : constant Match_Type :=
+        Match_Terminal_Sequence (M, [Tok_Comma, Tok_Identifier]);
+    begin
+      (if not Next_M.Matched
+       then M
+       else Match_Identifier_List_Tail (Next_M)))
+with
+  Post               =>
+    Is_Match_Monotonic (M, Match_Identifier_List_Tail'Result)
+    and then M.Matched = Match_Identifier_List_Tail'Result.Matched
+    and then
+      not Match_Terminal_Sequence
+            (Match_Identifier_List_Tail'Result,
+             [Tok_Comma, Tok_Identifier])
+            .Matched,
+  Subprogram_Variant => (Decreases => Unmatched_Length (M));
+
+--  Rule function for identifier_list:
 function Match_Identifier_List (M : Match_Type) return Match_Type
-is (if Unmatched_Length (M) = 0
-    then No_Match
-    else
-      Match_Identifier_List
-        (Match_Terminal_Sequence (M, [Tok_Identifier, Tok_Comma]))
-      or Match_Terminal (M, Tok_Identifier))
-with Subprogram_Variant => (Decreases => Unmatched_Length (M));
+is (Match_Identifier_List_Tail (Match_Terminal (M, Tok_Identifier)))
+with Post => Is_Match_Progression (M, Match_Identifier_List'Result);
 ```
 
 These formal specifications in SPARK can then be used to prove that a parser
