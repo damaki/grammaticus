@@ -140,7 +140,7 @@ is
    --  Returns a valid match if the next unmatched terminal token in `M` is
    --  equal to `Expected`.
 
-   function Match_Any_Teriminal
+   function Match_Any_Terminal
      (M : Match_Type; Expected : Terminal_Symbol_Vectors.Sequence)
       return Match_Type
    is (if Unmatched_Length (M) = 0
@@ -155,7 +155,7 @@ is
             Matched_Count => M.Matched_Count + 1))
    with
      Pre  => Length (Expected) > 0,
-     Post => Is_Match_Progression (M, Match_Any_Teriminal'Result);
+     Post => Is_Match_Progression (M, Match_Any_Terminal'Result);
    --  Returns a valid match if the next unmatched terminal symbol in `M` is
    --  equal to one of the tokens in `Expected`.
 
