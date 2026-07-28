@@ -82,6 +82,7 @@ is
    function Next_Unmatched_Index (M : Match_Type) return Index_Type
    is (Terminal_Symbol_Vectors.First + Of_Big (M.Matched_Count))
    with Pre => Unmatched_Length (M) > 0;
+   --  Get the index of the next unmatched symbol in M.Tokens
 
    function Is_Match_Progression (Left, Right : Match_Type) return Boolean
    is (if Right.Matched
@@ -89,7 +90,17 @@ is
          Left.Matched
          and then Right.Symbols = Left.Symbols
          and then Right.Matched_Count > Left.Matched_Count);
-   --  Returns True if Right has matched at least one more symbol than Left
+   --  Returns True if Right has matched at least one more symbol than in Left,
+   --  or Right is No_Match.
+
+   function Is_Match_Monotonic (Left, Right : Match_Type) return Boolean
+   is (if Right.Matched
+       then
+         Left.Matched
+         and then Right.Symbols = Left.Symbols
+         and then Right.Matched_Count >= Left.Matched_Count);
+   --  Returns True if Right has matched zero or more symbols more than in Left
+   --  or Right is No_Match.
 
    function Start_Match
      (Symbols : Terminal_Symbol_Vectors.Sequence) return Match_Type
