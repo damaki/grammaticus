@@ -87,30 +87,16 @@ is
       --
       --  Splitting the rule into two parts makes it easier to express the
       --  repetition part using a recursive function.
+      --
+      --  We use Grammaticus' Generic_Repetition_Match function to help define
+      --  the identifier_list_tail rule, since the rule is a repetition.
 
-      function Match_Identifier_List_Tail (M : Match_Type) return Match_Type
-      is (declare
-            Next_M : constant Match_Type :=
-              Match_Terminal_Sequence (M, [Tok_Comma, Tok_Identifier]);
-          begin
-            (if not Next_M.Matched
-             then M
-             else Match_Identifier_List_Tail (Next_M)))
-      with
-        Post               =>
-          --  The rule matches against zero or more symbols
-          Is_Match_Monotonic (M, Match_Identifier_List_Tail'Result)
-          and then M.Matched = Match_Identifier_List_Tail'Result.Matched
+      function Match_Comma_Then_Identifier
+        (M : Match_Type) return Match_Type
+      is (Match_Terminal_Sequence (M, [Tok_Comma, Tok_Identifier]));
 
-          --  The rule is greedy. All symbols that match the rule are consumed,
-          --  so the next unmatched symbols after this rule are not a comma
-          --  and identifier.
-          and then
-            not Match_Terminal_Sequence
-                  (Match_Identifier_List_Tail'Result,
-                   [Tok_Comma, Tok_Identifier])
-                  .Matched,
-        Subprogram_Variant => (Decreases => Unmatched_Length (M));
+      function Match_Identifier_List_Tail is new
+        Generic_Repetition_Match (Match_Comma_Then_Identifier);
 
       function Match_Identifier_List (M : Match_Type) return Match_Type
       is (Match_Identifier_List_Tail (Match_Terminal (M, Tok_Identifier)))

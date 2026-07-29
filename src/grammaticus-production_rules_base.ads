@@ -179,4 +179,46 @@ is
    --  Returns a valid match if the next sequence of unmatched tokens in `M`
    --  is equal to `Expected`.
 
+   ------------------------
+   -- Repetition Helpers --
+   ------------------------
+
+   --  Generic_Repetition_Match is a helper function for defining production
+   --  rules that match zero or more times. I.e. rules that are in the form:
+   --
+   --  rule = { match_one } ;
+
+   generic
+      with function Match_One (M : Match_Type) return Match_Type;
+   function Generic_Repetition_Match (M : Match_Type) return Match_Type
+   with
+     Post               =>
+       --  Recursive definition
+       Generic_Repetition_Match'Result
+       = (declare
+            Next_M : constant Match_Type := Match_One (M);
+          begin
+            (if not Next_M.Matched
+             then M
+             else Generic_Repetition_Match (Next_M)))
+
+       --  The match consumes zero or more symbols
+       and then Is_Match_Monotonic (M, Generic_Repetition_Match'Result)
+       and then Generic_Repetition_Match'Result.Matched = M.Matched
+
+       --  The match is greedy; it consumes all symbol sequences that match
+       --  the Match_One rule, so the next unmatched symbols after this rule
+       --  do not match the Match_One rule.
+       and then not Match_One (Generic_Repetition_Match'Result).Matched,
+
+     Subprogram_Variant => (Decreases => Unmatched_Length (M));
+
+   function Generic_Repetition_Match (M : Match_Type) return Match_Type
+   is (declare
+         Next_M : constant Match_Type := Match_One (M);
+       begin
+         (if not Next_M.Matched
+          then M
+          else Generic_Repetition_Match (Next_M)));
+
 end Grammaticus.Production_Rules_Base;
