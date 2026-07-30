@@ -183,3 +183,53 @@ function Match_Example_7 (M : Match_Type) return Match_Type
 is (Match_Example_3 (Match_Example_2 (Match_Example_1 (M))))
 with Post => Is_Match_Progression (Match_Example_7'Result);
 ```
+
+### Handling Mutually Recursive Rules
+
+Sometimes, rules are defined recursively. For example, consider the following
+recursive EBNF production rules:
+
+```
+primary_expression = identifier | number | "(" , expression , ")" ;
+add_expression     = primary_expression , "+" , primary_expression ;
+expression         = add_expression | primary_expression;
+```
+
+We can define these rules recursively in SPARK as follows:
+
+```ada
+--  primary_expression definition
+function Match_Primary_Expression (M : Match_Type) return Match_Type
+is (Match_Terminal (M, Tok_Identifier)
+    or Match_Terminal (M, Tok_Number)
+    or Match_Terminal
+         (Match_Expression (Match_Terminal (M, Tok_Left_Paren)),
+          Tok_Right_Paren))
+with
+  Post               => Is_Match_Progression (Match_Primary_Expression'Result),
+  Subprogram_Variant => (Decreases => Unmatched_Length (M), Decreases => 0);
+
+--  add_expression definition
+function Match_Add_Expression (M : Match_Type) return Match_Type
+is (Match_Primary_Expression
+      (Match_Terminal (Match_Primary_Expression (M), Tok_Plus)))
+with
+  Post               => Is_Match_Progression (Match_Add_Expression'Result),
+  Subprogram_Variant => (Decreases => Unmatched_Length (M), Decreases => 1);
+
+--  expression definition
+function Match_Expression (M : Match_Type) return Match_Type
+is (Match_Add_Expression (M) or Match_Primary_Expression (M))
+with
+  Post               => Is_Match_Progression (Match_Expression'Result),
+  Subprogram_Variant => (Decreases => Unmatched_Length (M), Decreases => 2);
+```
+
+To prove termination of this mutual recursion, GNATprove requires a
+`Subprogram_Variant`. The structural calls from `Match_Expression` to
+do not consume terminal symbols, so the `Unmatched_Count` remains
+constant until a token is consumed or `Match_Primary_Expression` is
+reached. We therefore use a lexicographic variant: the primary
+progress measure is `Unmatched_Count`, and the secondary measure is a
+static rank (decreasing with each downward call) to be able to prove
+that the descent through the rules always terminates.
