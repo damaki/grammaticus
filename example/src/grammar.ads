@@ -117,8 +117,7 @@ is
       --  We use the Generic_Repetition_Match function to help define
       --  the identifier_list_tail rule, since the rule is a repetition.
 
-      function Match_Comma_Then_Identifier
-        (M : Match_Type) return Match_Type
+      function Match_Comma_Then_Identifier (M : Match_Type) return Match_Type
       is (Match_Terminal_Sequence (M, [Tok_Comma, Tok_Identifier]));
 
       function Match_Identifier_List_Tail is new
@@ -188,9 +187,12 @@ is
       --  unary_expression = [ "+" | "-" | "!" | "~" ] , primary_expression ;
 
       function Match_Unary_Expression (M : Match_Type) return Match_Type
-      is (Match_Primary_Expression
-            (Match_Any_Terminal
-               (M, [Tok_Plus, Tok_Minus, Tok_Exclamation_Mark, Tok_Tilde])))
+      is (declare
+            M_Op : constant Match_Type :=
+              Match_Any_Terminal
+                (M, [Tok_Plus, Tok_Minus, Tok_Exclamation_Mark, Tok_Tilde]);
+          begin
+            Match_Primary_Expression (M_Op) or Match_Primary_Expression (M))
       with
         Post               =>
           Is_Match_Progression (M, Match_Unary_Expression'Result),
