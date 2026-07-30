@@ -6,16 +6,20 @@
 with SPARK.Big_Integers; use SPARK.Big_Integers;
 with SPARK.Containers.Formal.Unbounded_Vectors;
 
-with Grammaticus.Production_Rules_Base;
+with Grammaticus.Grammar_Matchers;
 
---  This package defines some example symbol types and production rules.
+--  This package provides an example of using Grammaticus to formally specify
+--  a language grammar.
 
-package Production_Rules
+package Grammar
   with SPARK_Mode, Always_Terminates
 is
 
    --  Terminal_Symbol defines the set of terminal symbols that can appear in
    --  our grammar.
+   --
+   --  For the purposes of this example we define a grammar over a sequence of
+   --  tokens, which we assume would be output by a lexer.
 
    type Terminal_Symbol is
      (Tok_As,                    --  keyword "as"
@@ -58,17 +62,39 @@ is
        (Index_Type   => Index_Type,
         Element_Type => Terminal_Symbol);
 
-   --  The Rules package defines our production rules as ghost expression
-   --  functions.
+   --  The Formal_Spec package contains the formal specification for our
+   --  grammar.
    --
-   --  The rules match against a functional vector of terminal symbols.
+   --  The grammar is specified as various expression functions which define
+   --  the sequence(s) of terminal symbols that match against the right hand
+   --  side of a production rule.
+   --
+   --  For example, given the EBNF production rule:
+   --
+   --     example = identifier , "+" , number ;
+   --
+   --  We can formally specify this rule in SPARK by defining a function that
+   --  matches against the sequence of symbols on the right hand side of the
+   --  assignment:
+   --
+   --     function Match_Example (M : Match_Type) return Match_Type
+   --     is (Match_Terminal_Sequence
+   --           (M, [Tok_Identifier, Tok_Plus, Tok_Number]));
+   --
+   --  The function itself is named after the nonterminal symbol on the left
+   --  side of the assignment in the production rule ("example" in this case).
+   --  This function can then be reused when specifying other grammar rules
+   --  that reference the nonterminal symbol "example".
+   --
+   --  The package is defined as ghost code since its definitions are intended
+   --  for specification and verification only.
 
-   package Rules
+   package Formal_Spec
      with Ghost
    is
 
       package Base is new
-        Grammaticus.Production_Rules_Base
+        Grammaticus.Grammar_Matchers
           (Index_Type              => Index_Type,
            Terminal_Symbol         => Terminal_Symbol,
            Terminal_Symbol_Vectors => Terminal_Symbol_Vectors.Formal_Model.M);
@@ -88,7 +114,7 @@ is
       --  Splitting the rule into two parts makes it easier to express the
       --  repetition part using a recursive function.
       --
-      --  We use Grammaticus' Generic_Repetition_Match function to help define
+      --  We use the Generic_Repetition_Match function to help define
       --  the identifier_list_tail rule, since the rule is a repetition.
 
       function Match_Comma_Then_Identifier
@@ -480,6 +506,6 @@ is
       is (Match_Conditional_Expression (M)
           or Match_Bitwise_Xor_Expression (M));
 
-   end Rules;
+   end Formal_Spec;
 
-end Production_Rules;
+end Grammar;

@@ -3,6 +3,7 @@
 --
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
+
 package body Checker
   with SPARK_Mode
 is
@@ -14,21 +15,21 @@ is
    procedure Check_Identifier_List
      (Symbols : Terminal_Symbol_Vectors.Vector; Pos : in out Index_Type)
    is
-      use type Rules.Base.Match_Type;
+      use type Formal_Spec.Base.Match_Type;
 
-      M_Initial : constant Rules.Base.Match_Type :=
-        Rules.Base.Start_Match (Model (Symbols), Pos)
+      M_Initial : constant Formal_Spec.Base.Match_Type :=
+        Formal_Spec.Base.Start_Match (Model (Symbols), Pos)
       with Ghost;
       --  Holds the initial state of the parser before checking any
       --  symbols.
 
-      M_Ident_List : constant Rules.Base.Match_Type :=
-        Rules.Match_Identifier_List (M_Initial)
+      M_Ident_List : constant Formal_Spec.Base.Match_Type :=
+        Formal_Spec.Match_Identifier_List (M_Initial)
       with Ghost;
       --  Holds the result of calling Match_Identifier_List on the sequence
       --  of tokens starting at `Pos`.
 
-      M : Rules.Base.Match_Type
+      M : Formal_Spec.Base.Match_Type
       with Ghost;
 
    begin
@@ -66,7 +67,8 @@ is
          pragma Loop_Invariant (M.Matched);
 
          --  Pos always references the next symbol that hasn't been checked yet
-         pragma Loop_Invariant (Pos = Rules.Base.Next_Unmatched_Index (M));
+         pragma
+           Loop_Invariant (Pos = Formal_Spec.Base.Next_Unmatched_Index (M));
 
          --  The match in M has not yet fully matched against all symbols
          --  that match against the identifier_list production rule.
@@ -75,7 +77,8 @@ is
          --  M is a partial match against the complete identifier_list
          --  production rule.
          pragma
-           Loop_Invariant (M_Ident_List = Rules.Match_Identifier_List (M));
+           Loop_Invariant
+             (M_Ident_List = Formal_Spec.Match_Identifier_List (M));
 
          --  Check whether the identifier list continues with another comma
          --  and identifier symbols.
@@ -95,7 +98,8 @@ is
 
          Pos := Pos + 2;
          M :=
-           Rules.Base.Match_Terminal_Sequence (M, [Tok_Identifier, Tok_Comma]);
+           Formal_Spec.Base.Match_Terminal_Sequence
+             (M, [Tok_Identifier, Tok_Comma]);
       end loop;
 
       --  Pos currently points to the last identifier symbol in the identifier
@@ -107,7 +111,7 @@ is
       --  Also consume the final identifier in the list to prove that we have
       --  now reached the end of the production rule.
 
-      M := Rules.Base.Match_Terminal (M, Tok_Identifier);
+      M := Formal_Spec.Base.Match_Terminal (M, Tok_Identifier);
       pragma Assert (M = M_Ident_List);
    end Check_Identifier_List;
 

@@ -5,7 +5,7 @@
 --
 with SPARK.Big_Integers; use SPARK.Big_Integers;
 
-with Production_Rules; use Production_Rules;
+with Grammar; use Grammar;
 
 --  This package contains code that parses a sequence of terminal symbols
 --  to check whether they match against the corresponding production rule.
@@ -14,9 +14,9 @@ package Checker
   with SPARK_Mode, Always_Terminates
 is
 
-   use Production_Rules.Terminal_Symbol_Vectors.Formal_Model;
+   use Grammar.Terminal_Symbol_Vectors.Formal_Model;
 
-   use all type Production_Rules.Terminal_Symbol_Vectors.Vector;
+   use all type Grammar.Terminal_Symbol_Vectors.Vector;
 
    Syntax_Error : exception;
    --  Raised if a production rule fails to match against the provided
@@ -27,8 +27,7 @@ is
    ---------------------------
 
    --  Check_Identifier_List parses a sequence of terminal symbols to match
-   --  them against the identifier_list production rule (see package
-   --  Production_Rules).
+   --  them against the identifier_list production rule (see package Grammar).
 
    procedure Check_Identifier_List
      (Symbols : Terminal_Symbol_Vectors.Vector; Pos : in out Index_Type)
@@ -39,9 +38,9 @@ is
      --  starting at `Pos` match against the identifier_list production rule.
      Post              =>
        (declare
-          M : constant Rules.Base.Match_Type :=
-            Rules.Match_Identifier_List
-              (Rules.Base.Start_Match (Model (Symbols), Pos'Old));
+          M : constant Formal_Spec.Base.Match_Type :=
+            Formal_Spec.Match_Identifier_List
+              (Formal_Spec.Base.Start_Match (Model (Symbols), Pos'Old));
         begin
         --  The symbols starting at `Pos'Old` matched against the
         --  identifier_list production rule.
@@ -54,7 +53,7 @@ is
           --  symbols, then `Pos` references one past the end of `Symbols`.
           and then
             (if M.Matched_Count < Big (Length (Symbols))
-             then Pos = Rules.Base.Next_Unmatched_Index (M)
+             then Pos = Formal_Spec.Base.Next_Unmatched_Index (M)
              else Pos = Last_Index (Symbols) + 1)),
 
      --  If the procedure raised Syntax_Error, then the sequence of symbols
@@ -62,8 +61,8 @@ is
      --  production rule.
      Exceptional_Cases =>
        (Syntax_Error =>
-          not Rules.Match_Identifier_List
-                (Rules.Base.Start_Match (Model (Symbols), Pos'Old))
+          not Formal_Spec.Match_Identifier_List
+                (Formal_Spec.Base.Start_Match (Model (Symbols), Pos'Old))
                 .Matched);
 
 end Checker;

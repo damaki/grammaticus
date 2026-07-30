@@ -16,7 +16,7 @@ generic
         Element_Type => Terminal_Symbol,
         others       => <>);
 
-package Grammaticus.Production_Rules_Base with
+package Grammaticus.Grammar_Matchers with
     Ghost,
     SPARK_Mode,
     Always_Terminates
@@ -39,17 +39,16 @@ is
    -- Match_Type --
    ----------------
 
-   --  The production rules (expressed as ghost functions in SPARK) return
-   --  Match_Type to express whether or not a sequence of tokens matches
-   --  against the production rule. The Match_Type object holds the sequence
-   --  of tokens being compared, and how many of the tokens have matched
-   --  against the rule.
+   --  Grammar matchers (expressed as ghost functions in SPARK) return
+   --  Match_Type to express whether or not a sequence of terminal symbols
+   --  matches against the required grammar. The Match_Type object holds the
+   --  sequence of symbols being compared, and how many of the symbols have
+   --  matched against rules.
    --
-   --  Production rule functions also take a Match_Type as input, which allows
-   --  rules to be chained to express complex grammar rules. If one production
-   --  rule in the chain fails to match against a symbol sequence (expressed by
-   --  setting Matched to False), then the failure propagates through the other
-   --  rules.
+   --  Match functions also take a Match_Type as input, which allows them to be
+   --  chained to express complex grammars. If one matcher in the chain fails
+   --  to match against a symbol sequence (expressed by setting `Matched` to
+   --  `False`), then the failure propagates through the other rules.
 
    type Match_Type (Matched : Boolean := False) is record
       case Matched is
@@ -73,7 +72,15 @@ is
    is (if Left.Matched then Left else Right);
    --  Chooses either Left or Right.
    --
-   --  This is useful for expressing alternatives in a grammar.
+   --  This is useful for expressing EBNF alternatives that have the form
+   --  "Left | Right" in a grammar.
+
+   function "-" (Left, Right : Match_Type) return Match_Type
+   is (if Right.Matched then No_Match else Left);
+   --  Returns the Left match, provided that Right is not a match.
+   --
+   --  This is useful for expressing EBNF exceptions that have the form
+   --  "Left - Right" in a grammar.
 
    function Unmatched_Length
      (M : Match_Type) return SPARK.Big_Integers.Big_Natural
@@ -124,7 +131,7 @@ is
    ------------------------------
 
    --  These functions compare the next unmatched terminal symbol(s) to check
-   --  for a specific symbol or sequence of symbols.
+   --  for a specific set of terminal symbols, or sequence of terminal symbols.
 
    function Match_Terminal
      (M : Match_Type; Expected : Terminal_Symbol) return Match_Type
@@ -183,8 +190,9 @@ is
    -- Repetition Helpers --
    ------------------------
 
-   --  Generic_Repetition_Match is a helper function for defining production
-   --  rules that match zero or more times. I.e. rules that are in the form:
+   --  Generic_Repetition_Match is a helper function for matching against
+   --  grammar that uses repetition. I.e. for production rules that are in the
+   --  form:
    --
    --  rule = { match_one } ;
 
@@ -221,4 +229,4 @@ is
           then M
           else Generic_Repetition_Match (Next_M)));
 
-end Grammaticus.Production_Rules_Base;
+end Grammaticus.Grammar_Matchers;

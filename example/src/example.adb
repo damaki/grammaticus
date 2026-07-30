@@ -6,7 +6,14 @@
 with Ada.Text_IO;
 
 with Checker;
-with Production_Rules; use Production_Rules;
+with Grammar; use Grammar;
+
+--  Package Validation is imported (but not referenced) so that its assertions
+--  are executed during elaboration when this program is built with assertions
+--  enabled (e.g. `alr build --validation`).
+
+with Validation;
+pragma Unreferenced (Validation);
 
 procedure Example is
 begin
