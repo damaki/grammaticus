@@ -502,7 +502,7 @@ is
       -- expression --
       ----------------
 
-      --  expression = cast_expression | bitwise_xor_expression ;
+      --  expression = conditional_expression | bitwise_xor_expression ;
 
       function Match_Expression (M : Match_Type) return Match_Type
       is (Match_Conditional_Expression (M)
