@@ -82,17 +82,17 @@ is
    function Unmatched_Length
      (M : Match_Type) return SPARK.Big_Integers.Big_Natural
    is (if not M.Matched then 0 else Length (M.Symbols) - M.Matched_Count);
-   --  Get the number of Unmatched tokens
+   --  Get the number of Unmatched terminal symbols in `M`.
 
    function Next_Unmatched_Index (M : Match_Type) return Index_Type
    is (Terminal_Symbol_Vectors.First + Of_Big (M.Matched_Count))
    with Pre => Unmatched_Length (M) > 0;
-   --  Get the index of the next unmatched symbol in M.Tokens
+   --  Get the index of the next unmatched terminal symbol in `M.Symbols`
 
    function Next_Unmatched_Terminal (M : Match_Type) return Terminal_Symbol
    is (Get (M.Symbols, Next_Unmatched_Index (M)))
    with Pre => Unmatched_Length (M) > 0;
-   --  Get the next unmatched terminal symbol in M.
+   --  Get the next unmatched terminal symbol in `M`.
 
    function Is_Match_Progression (Left, Right : Match_Type) return Boolean
    is (if Right.Matched
@@ -154,7 +154,7 @@ is
             Symbols       => M.Symbols,
             Matched_Count => M.Matched_Count + 1))
    with Post => Is_Match_Progression (M, Match_Terminal'Result);
-   --  Returns a valid match if the next unmatched terminal token in `M` is
+   --  Returns a valid match if the next unmatched terminal symbol in `M` is
    --  equal to `Expected`.
 
    function Match_Any_Terminal
@@ -174,7 +174,7 @@ is
      Pre  => Length (Expected) > 0,
      Post => Is_Match_Progression (M, Match_Any_Terminal'Result);
    --  Returns a valid match if the next unmatched terminal symbol in `M` is
-   --  equal to one of the tokens in `Expected`.
+   --  equal to one of the symbols in `Expected`.
 
    function Match_Terminal_Sequence
      (M : Match_Type; Expected : Terminal_Symbol_Vectors.Sequence)
@@ -193,8 +193,8 @@ is
    with
      Pre  => Length (Expected) > 0,
      Post => Is_Match_Progression (M, Match_Terminal_Sequence'Result);
-   --  Returns a valid match if the next sequence of unmatched tokens in `M`
-   --  is equal to `Expected`.
+   --  Returns a valid match if the next sequence of unmatched terminal symbols
+   --  in `M` is equal to `Expected`.
 
    ------------------------
    -- Repetition Helpers --
