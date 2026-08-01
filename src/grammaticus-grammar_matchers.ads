@@ -123,6 +123,14 @@ is
             Matched_Count => Big (First_Unmatched - Index_Type'First))
        else No_Match);
 
+   function Consume
+     (M : Match_Type; N : SPARK.Big_Integers.Big_Positive) return Match_Type
+   is ((M with delta Matched_Count => M.Matched_Count + N))
+   with
+     Pre  => N <= Unmatched_Length (M),
+     Post => Is_Match_Progression (M, Consume'Result);
+   --  Consumes the next N symbols in M.
+
    ------------------------------
    -- Terminal Symbol Matching --
    ------------------------------
