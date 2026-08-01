@@ -16,10 +16,7 @@ generic
         Element_Type => Terminal_Symbol,
         others       => <>);
 
-package Grammaticus.Grammar_Matchers with
-    Ghost,
-    SPARK_Mode,
-    Always_Terminates
+package Grammaticus.Grammar_Matchers with Ghost, SPARK_Mode, Always_Terminates
 is
 
    use type SPARK.Big_Integers.Big_Integer;
@@ -228,5 +225,35 @@ is
          (if not Next_M.Matched
           then M
           else Generic_Repetition_Match (Next_M)));
+
+   -----------------------
+   -- Lookahead Helpers --
+   -----------------------
+
+   function Match_Lookahead (M1, M2 : Match_Type) return Match_Type
+   is (if M2.Matched then M1 else No_Match)
+   with
+     Pre  => Is_Match_Progression (M1, M2),
+     Post => Is_Match_Monotonic (M1, Match_Lookahead'Result);
+   --  Helper function for looking ahead.
+   --
+   --  Give a match `M2` that is a progression of `M1`, if `M2` is a valid
+   --  match, then `M1` is returned. Otherwise, if `M2` is not a valid match,
+   --  then `No_Match` is returned.
+   --
+   --  This allows expressing lookahead grammar rules, where M2 is the
+   --  lookahead part.
+   --
+   --  For example, using `&` as the lookahead operator in this EBNF variant
+   --  grammar:
+   --
+   --     example = "a" &"b" ;
+   --
+   --  This expresses a match against "a" when it is followed by a "b".
+   --  This can be expressed using this function as:
+   --
+   --     Match_Lookahead
+   --       (M1 => Match_Terminal (M, 'a'),
+   --        M2 => Match_Terminal (Match_Terminal (M, 'a'), 'b'))
 
 end Grammaticus.Grammar_Matchers;
