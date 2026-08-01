@@ -89,6 +89,11 @@ is
    with Pre => Unmatched_Length (M) > 0;
    --  Get the index of the next unmatched symbol in M.Tokens
 
+   function Next_Unmatched_Terminal (M : Match_Type) return Terminal_Symbol
+   is (Get (M.Symbols, Next_Unmatched_Index (M)))
+   with Pre => Unmatched_Length (M) > 0;
+   --  Get the next unmatched terminal symbol in M.
+
    function Is_Match_Progression (Left, Right : Match_Type) return Boolean
    is (if Right.Matched
        then
