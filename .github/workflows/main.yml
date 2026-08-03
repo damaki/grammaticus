@@ -1,0 +1,33 @@
+on:                    # Run the workflow for each of the following event:
+  push:                # - A branch is pushed or updated.
+    branches:
+      - main
+  pull_request:        # - A pull-request is opened or updated.
+  workflow_dispatch:   # - A manual run of the workflow is requested from the GitHub web interface.
+
+jobs:
+
+  build-and-prove:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: alire-project/setup-alire@v6
+        with:
+          version: 2.1.1
+
+      # Use the validation build profile to enforce static analysis and coding style.
+      - name: Build library (validation profile)
+        run: |
+          alr build --validation
+
+      - name: Build example (validation profile)
+        run: |
+          cd example
+          alr build --validation
+
+      - name: Prove example
+        run: |
+          cd example
+          alr exec -- gnatprove -P example.gpr -j0 --level=1 --warnings=on --checks-as-errors=on
